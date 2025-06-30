@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cURL 测试工具</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>cURL 请求测试工具</h1>
+        </header>
+        
+        <!-- 加载指示器 -->
+        <div id="loadingIndicator" class="loading-indicator">
+            <div class="spinner"></div>
+            <div class="loading-text">正在发送请求...</div>
+        </div>
+        
+        <main>
+            <section class="input-section">
+                <h2>输入 cURL 命令</h2>
+                <div class="curl-input-container">
+                    <div class="input-header">
+                        <div class="input-actions">
+                            <button id="pasteButton" class="icon-button" title="粘贴"><svg viewBox="0 0 24 24"><path d="M19,3H14.82C14.4,1.84 13.3,1 12,1C10.7,1 9.6,1.84 9.18,3H5C3.9,3 3,3.9 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.9 20.1,3 19,3M12,3C12.55,3 13,3.45 13,4C13,4.55 12.55,5 12,5C11.45,5 11,4.55 11,4C11,3.45 11.45,3 12,3M7,7H17V5H19V19H5V5H7V7Z"></path></svg></button>
+                        </div>
+                    </div>
+                    <textarea id="curlInput" placeholder="在此输入您的 cURL 命令，例如: curl -X GET https://api.example.com/data"></textarea>
+                    <div class="button-group">
+                        <button id="parseButton">解析并发送</button>
+                        <button id="clearButton">清空命令</button>
+                        <button id="showExamplesButton">查看示例</button>
+                    </div>
+                    <div class="mode-toggle">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="requestModeToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label">实际发送请求</span>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 示例弹窗 -->
+            <div id="examplesModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>cURL 命令示例</h2>
+                        <span class="close-modal">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div class="examples-list">
+                            <div class="example-item" data-command="curl https://jsonplaceholder.typicode.com/posts/1">
+                                <h3>基本 GET 请求</h3>
+                                <pre>curl https://jsonplaceholder.typicode.com/posts/1</pre>
+                            </div>
+                            <div class="example-item" data-command="curl -X POST -H &quot;Content-Type: application/json&quot; -d '{&quot;title&quot;:&quot;foo&quot;,&quot;body&quot;:&quot;bar&quot;,&quot;userId&quot;:1}' https://jsonplaceholder.typicode.com/posts">
+                                <h3>基本 POST 请求</h3>
+                                <pre>curl -X POST -H "Content-Type: application/json" -d '{"title":"foo","body":"bar","userId":1}' https://jsonplaceholder.typicode.com/posts</pre>
+                            </div>
+                            <div class="example-item" data-command="curl -X PUT -H &quot;Content-Type: application/json&quot; -d '{&quot;id&quot;:1,&quot;title&quot;:&quot;foo&quot;,&quot;body&quot;:&quot;bar&quot;,&quot;userId&quot;:1}' https://jsonplaceholder.typicode.com/posts/1">
+                                <h3>PUT 请求</h3>
+                                <pre>curl -X PUT -H "Content-Type: application/json" -d '{"id":1,"title":"foo","body":"bar","userId":1}' https://jsonplaceholder.typicode.com/posts/1</pre>
+                            </div>
+                            <div class="example-item" data-command="curl -X DELETE https://jsonplaceholder.typicode.com/posts/1">
+                                <h3>DELETE 请求</h3>
+                                <pre>curl -X DELETE https://jsonplaceholder.typicode.com/posts/1</pre>
+                            </div>
+                            <div class="example-item" data-command="curl -X GET -H &quot;Accept: application/json&quot; https://jsonplaceholder.typicode.com/posts/1">
+                                <h3>带请求头的 GET 请求</h3>
+                                <pre>curl -X GET -H "Accept: application/json" https://jsonplaceholder.typicode.com/posts/1</pre>
+                            </div>
+                            <div class="example-item" data-command="curl -X GET https://jsonplaceholder.typicode.com/posts?userId=1">
+                                <h3>带查询参数的请求</h3>
+                                <pre>curl -X GET https://jsonplaceholder.typicode.com/posts?userId=1</pre>
+                            </div>
+                        </div>
+                        <p class="examples-note">点击示例可以将命令复制到输入框。更多示例请查看 <a href="examples.md" target="_blank">examples.md</a> 文件。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <section class="result-section">
+                <h2>请求结果</h2>
+                <div class="tabs">
+                    <button class="tab-button active" data-tab="response">响应</button>
+                    <button class="tab-button" data-tab="headers">请求头</button>
+                    <button class="tab-button" data-tab="parsed">解析后的请求</button>
+                </div>
+                <div class="tab-content">
+                    <div id="response" class="tab-pane active">
+                        <div class="pane-header">
+                            <button id="copyResponseButton" class="icon-button copy-button" title="复制响应内容"><svg viewBox="0 0 24 24"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path></svg></button>
+                        </div>
+                        <pre id="responseContent">// 响应内容将显示在这里</pre>
+                    </div>
+                    <div id="headers" class="tab-pane">
+                        <div class="pane-header">
+                            <button id="copyHeadersButton" class="icon-button copy-button" title="复制请求头信息"><svg viewBox="0 0 24 24"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path></svg></button>
+                        </div>
+                        <pre id="headersContent">// 请求头信息将显示在这里</pre>
+                    </div>
+                    <div id="parsed" class="tab-pane">
+                        <div class="pane-header">
+                            <button id="copyParsedButton" class="icon-button copy-button" title="复制解析后的请求信息"><svg viewBox="0 0 24 24"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"></path></svg></button>
+                        </div>
+                        <pre id="parsedContent">// 解析后的请求信息将显示在这里</pre>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="history-section">
+                <div class="history-header">
+                    <h2>历史记录</h2>
+                    <div class="history-actions">
+                        <button id="clearHistoryButton">清空历史</button>
+                        <button id="exportHistoryButton">导出历史</button>
+                        <button id="importHistoryButton">导入历史</button>
+                        <input type="file" id="importHistoryFile" style="display: none;" accept=".json">
+                    </div>
+                </div>
+                <div class="history-list" id="historyList">
+                    <!-- 历史记录将在这里动态生成 -->
+                    <div class="empty-history">暂无历史记录</div>
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <p>cURL 测试工具 &copy; 2023</p>
+        </footer>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
